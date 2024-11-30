@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG 水平線と交点表示</title>
+</head>
+<body>
+  <h1>SVG 水平線と交点</h1>
+  <p>スライダーを動かして水平線を移動し、曲線との交点を確認してください。</p>
+
+  <!-- スライダー -->
+  <input type="range" id="lineSlider" min="50" max="450" value="250" style="width: 100%; margin-bottom: 20px;">
+
+  <!-- SVG -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+    <!-- 背景 -->
+    <rect width="500" height="500" fill="#f0f0f0" />
+    
+    <!-- 下の曲線 -->
+    <path id="curve1" d="M 100,400 C 150,200 350,200 400,400" 
+          fill="none" 
+          stroke="url(#gradient1)" 
+          stroke-width="8" />
+
+    <!-- 上の曲線（右肩上がり） -->
+    <path id="curve2" d="M 100,100 C 200,50 300,150 400,50" 
+          fill="none" 
+          stroke="url(#gradient2)" 
+          stroke-width="8" />
+
+    <!-- 水平線 -->
+    <line id="horizontalLine" x1="50" y1="250" x2="450" y2="250" 
+          stroke="#ff4500" 
+          stroke-width="4" />
+
+    <!-- グラデーション定義 -->
+    <defs>
+      <linearGradient id="gradient1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff7f50" />
+        <stop offset="100%" stop-color="#1e90ff" />
+      </linearGradient>
+      <linearGradient id="gradient2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#32cd32" />
+        <stop offset="100%" stop-color="#ff4500" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- JavaScript -->
+  <script>
+    const slider = document.getElementById('lineSlider');
+    const horizontalLine = document.getElementById('horizontalLine');
+    const svg = document.querySelector('svg');
+
+    // ベジエ曲線の計算関数
+    function getBezierPoint(t, p0, p1, p2, p3) {
+      const x = (1 - t) ** 3 * p0.x + 3 * (1 - t) ** 2 * t * p1.x + 3 * (1 - t) * t ** 2 * p2.x + t ** 3 * p3.x;
+      const y = (1 - t) ** 3 * p0.y + 3 * (1 - t) ** 2 * t * p1.y + 3 * (1 - t) * t ** 2 * p2.y + t ** 3 * p3.y;
+      return { x, y };
+    }
+
+    // 水平線と曲線の交点を探す
+    function findIntersections(y, p0, p1, p2, p3) {
+      const intersections = [];
+      const steps = 1000; // 精度を高めるための分割数
+      for (let i = 0; i < steps; i++) {
+        const t = i / steps;
+        const point = getBezierPoint(t, p0, p1, p2, p3);
+        if (Math.abs(point.y - y) < 1) { // y座標が近い点を検出
+          intersections.push(point);
+        }
+      }
+      return intersections;
+    }
+
+    // 既存の交点をクリア
+    function clearIntersections() {
+      const existingPoints = document.querySelectorAll('.intersection-point');
+      existingPoints.forEach(point => point.remove());
+    }
+
+    // 交点を描画
+    function drawIntersections(intersections) {
+      intersections.forEach(intersection => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', intersection.x);
+        circle.setAttribute('cy', intersection.y);
+        circle.setAttribute('r', 6);
+        circle.setAttribute('fill', 'red');
+        circle.setAttribute('class', 'intersection-point');
+        svg.appendChild(circle);
+      });
+    }
+
+    slider.addEventListener('input', (event) => {
+      const value = event.target.value;
+
+      // 水平線の位置を更新
+      horizontalLine.setAttribute('y1', value);
+      horizontalLine.setAttribute('y2', value);
+
+      // 曲線との交点を計算
+      const intersections1 = findIntersections(value, 
+        { x: 100, y: 400 }, 
+        { x: 150, y: 200 }, 
+        { x: 350, y: 200 }, 
+        { x: 400, y: 400 });
+
+      const intersections2 = findIntersections(value, 
+        { x: 100, y: 100 }, 
+        { x: 200, y: 50 }, 
+        { x: 300, y: 150 }, 
+        { x: 400, y: 50 });
+
+      // 既存の交点をクリアして再描画
+      clearIntersections();
+      drawIntersections(intersections1);
+      drawIntersections(intersections2);
+    });
+  </script>
+</body>
+</html>

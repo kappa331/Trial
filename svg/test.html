@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG水平線とスライダー</title>
+</head>
+<body>
+  <h1>SVG 水平線とスライダー</h1>
+  <p>スライダーを動かして水平線の位置を変更してください。</p>
+
+  <!-- スライダー -->
+  <input type="range" id="lineSlider" min="50" max="450" value="250" style="width: 100%; margin-bottom: 20px;">
+
+  <!-- SVG -->
+  <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500" viewBox="0 0 500 500">
+    <!-- 背景 -->
+    <rect width="500" height="500" fill="#f0f0f0" />
+    
+    <!-- 曲線 -->
+    <path d="M 100,400 C 150,200 350,200 400,400" 
+          fill="none" 
+          stroke="url(#gradient1)" 
+          stroke-width="8" />
+    
+    <!-- 水平線 -->
+    <line id="horizontalLine" x1="50" y1="250" x2="450" y2="250" 
+          stroke="#ff4500" 
+          stroke-width="4" />
+
+    <!-- グラデーション定義 -->
+    <defs>
+      <linearGradient id="gradient1" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#ff7f50" />
+        <stop offset="100%" stop-color="#1e90ff" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <!-- JavaScript -->
+  <script>
+    const slider = document.getElementById('lineSlider');
+    const horizontalLine = document.getElementById('horizontalLine');
+
+    slider.addEventListener('input', (event) => {
+      const value = event.target.value;
+      // 水平線のY座標をスライダーの値に変更
+      horizontalLine.setAttribute('y1', value);
+      horizontalLine.setAttribute('y2', value);
+    });
+  </script>
+</body>
+</html>
